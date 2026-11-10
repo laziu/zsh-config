@@ -1,0 +1,13 @@
+#!/usr/bin/env zsh
+# zsh_unbind <key>
+# Remove a key binding together with its cheat sheet line; for .zshrc.local.
+emulate -L zsh
+local i
+bindkey -r $1
+for (( i = $#zsh_help_keys; i > 0; i-- )); do
+  [[ $zsh_help_keys[i] == $1 ]] || continue
+  zsh_help_groups[i]=()
+  zsh_help_labels[i]=()
+  zsh_help_texts[i]=()
+  zsh_help_keys[i]=()
+done

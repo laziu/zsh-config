@@ -1,0 +1,18 @@
+#!/usr/bin/env zsh
+# zsh_bind <key> <widget> [description]
+# Bind key to widget in the main keymap, first registering a function of the
+# same name as the widget if needed. With a description, also list the key in
+# the cheat sheet (see zsh_help).
+emulate -L zsh
+local key=$1 widget=$2 label
+(( $+widgets[$widget] )) || zle -N $widget
+bindkey $key $widget
+(( $# > 2 )) || return 0
+case $key in
+  ('^[[A'|'^[OA') label=Up ;;
+  ('^[[B'|'^[OB') label=Down ;;
+  ('^I') label=Tab ;;
+  ('^['?) label=Alt-${(U)key[3]} ;;
+  (*) label=${${key//\^/ Ctrl-}# } ;;  # ^X^E -> Ctrl-X Ctrl-E
+esac
+zsh_help -k $key $label $3

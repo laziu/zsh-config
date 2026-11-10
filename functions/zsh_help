@@ -1,0 +1,28 @@
+#!/usr/bin/env zsh
+# zsh_help [-k key] <label> <description>
+# Add a line to the cheat sheet shown by `h` and Alt-H. Lines are grouped by the
+# configuration file that registered them: core (.zshrc), local (.zshrc.local)
+# or the conf.d file name. -k records the key the line describes, so that
+# zsh_unbind can drop it.
+emulate -L zsh
+typeset -ga zsh_help_groups zsh_help_labels zsh_help_texts zsh_help_keys
+local key= entry file group
+if [[ $1 == -k ]]; then
+  key=$2
+  shift 2
+fi
+# The registering file is the nearest caller outside functions/.
+for entry in $funcfiletrace; do
+  file=${entry%:*}
+  [[ $file == $ZDOTDIR/functions/* ]] || break
+done
+case ${file:t} in
+  (.zshrc) group=core ;;
+  (.zshrc.local) group=local ;;
+  (*) group=${file:t:r} ;;
+esac
+# Quoted: an unquoted empty $key would append nothing and misalign the arrays.
+zsh_help_groups+=("$group")
+zsh_help_labels+=("$1")
+zsh_help_texts+=("$2")
+zsh_help_keys+=("$key")

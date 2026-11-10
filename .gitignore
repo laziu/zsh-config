@@ -1,0 +1,7 @@
+# Machine-specific files
+.zshrc.local
+.zsh_plugins.local.txt
+# Personal prompt style written by `p10k configure`
+.p10k.zsh
+# Session state that macOS Terminal.app writes into $ZDOTDIR
+.zsh_sessions/

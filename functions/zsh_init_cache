@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+# zsh_init_cache <command> [args...]
+# Set REPLY to a cached copy of the command's output, such as `zoxide init zsh`,
+# saving a process spawn per tool on every startup. Fails when the command is
+# not installed. Callers source $REPLY at top level so the script's globals
+# stay global.
+emulate -L zsh
+REPLY=$zsh_cache_dir/init-${(j:_:)@}.zsh
+(( $+commands[$1] )) || return 1
+# Regenerate when the command is reinstalled. Compare with the directory the
+# binary really lives in, created at install time: unpacked release binaries
+# keep their build time as mtime, which can predate the cache.
+[[ $REPLY -nt ${commands[$1]:A:h} ]] && return
+"$@" >| $REPLY || { rm -f $REPLY; return 1 }
