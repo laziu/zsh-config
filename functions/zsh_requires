@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+# zsh_requires plugin <owner/repo>
+# zsh_requires command <name>
+# First line of a conf.d file that configures a plugin or a command:
+#   zsh_requires plugin zsh-users/zsh-autosuggestions || return
+# Succeeds when the plugin is in this machine's plugin list (lib/plugins.zsh)
+# or the command is installed. Otherwise fails, so the file is skipped, and
+# warns above the prompt of every shell until fixed; the shell itself keeps
+# working. A plugin dropped on purpose in .zsh_plugins.local.txt fails quietly.
+emulate -L zsh
+local kind=$1 name=$2 file=${${funcfiletrace[1]%:*}#$ZDOTDIR/}
+case $kind in
+  (plugin)
+    (( $zsh_plugins_loaded[(Ie)$name] )) && return 0
+    (( $zsh_plugins_dropped[(Ie)$name] )) && return 1
+    zsh_notice "zsh: $file skipped: plugin $name is not in .zsh_plugins.txt"
+    ;;
+  (command)
+    (( $+commands[$name] )) && return 0
+    zsh_notice "zsh: $file skipped: command $name is not installed"
+    ;;
+  (*)
+    print -u2 "zsh_requires: unknown kind '$kind' in $file"
+    return 2
+    ;;
+esac
+return 1

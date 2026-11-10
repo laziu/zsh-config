@@ -1,0 +1,29 @@
+#!/usr/bin/env zsh
+# zsh_notice [-m file] <message>
+# Print message above the first prompt of this shell, once the line editor
+# starts: output during startup, precmd hooks included, would trip p10k's
+# instant prompt. With -m, touch file when the message is actually printed.
+emulate -L zsh
+typeset -ga zsh_notice_messages zsh_notice_markers
+local marker=
+if [[ $1 == -m ]]; then
+  marker=$2
+  shift 2
+fi
+zsh_notice_messages+=("$1")
+zsh_notice_markers+=("$marker")
+(( $#zsh_notice_messages == 1 )) || return 0
+
+# Widget for the line-init hook; removes itself after the first prompt.
+zsh-notice-show() {
+  local i
+  zle -I
+  for (( i = 1; i <= $#zsh_notice_messages; i++ )); do
+    print -r -- $zsh_notice_messages[i]
+    [[ -n $zsh_notice_markers[i] ]] && : >| $zsh_notice_markers[i]
+  done
+  zsh_notice_messages=() zsh_notice_markers=()
+  add-zle-hook-widget -d line-init zsh-notice-show
+}
+autoload -Uz add-zle-hook-widget
+add-zle-hook-widget line-init zsh-notice-show

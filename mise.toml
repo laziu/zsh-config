@@ -1,0 +1,7 @@
+# Binary tools for this zsh setup, installed by mise (`mise install`, updated
+# with `mise upgrade`). .zprofile puts each tool's installs/<tool>/latest on
+# PATH; conf.d/<tool>.zsh integrates it into the shell.
+[tools]
+fzf = "latest"
+zoxide = "latest"
+"github:iffse/pay-respects" = "latest"

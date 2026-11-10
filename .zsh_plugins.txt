@@ -1,0 +1,11 @@
+# zsh plugins, loaded by antidote in this order (lib/plugins.zsh).
+# Settings for each are in the conf.d file whose `zsh_requires plugin` line
+# names it; conf.d runs after all plugins.
+# Binary tools are in mise.toml. Per-machine changes: .zsh_plugins.local.txt.
+
+romkatv/powerlevel10k
+zsh-users/zsh-completions kind:fpath path:src
+Aloxaf/fzf-tab
+zsh-users/zsh-autosuggestions
+zsh-users/zsh-syntax-highlighting
+zsh-users/zsh-history-substring-search  # after zsh-syntax-highlighting
