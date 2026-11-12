@@ -17,6 +17,7 @@ path=(
   ~/.local/bin(N)
   ${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}/installs/*/latest{,/bin}(N-/)
   ~/.cargo/bin(N)
+  ~/.local/share/fnm(N)
   $path
 )
 

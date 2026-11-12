@@ -39,18 +39,28 @@ autoload -Uz $ZDOTDIR/functions/*(N:t)
 # bound in conf.d (editor, sudo, help and each plugin's file).
 bindkey -e
 
-# --- Completion styles (compinit itself runs after the plugins) ---
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*:descriptions' format '[%d]'
-zstyle ':completion:*:git-checkout:*' sort false
-zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path $zsh_cache_dir/zcompcache
-# Completion files outside plugins, highest priority first:
-#   $ZDOTDIR/completions        hand-written ones (_mytool)
-#   $zsh_data_dir/completions   generated ones: `tool completion zsh > _tool`
-#                               there instead of eval-ing it on every startup
-fpath=($ZDOTDIR/completions(N) $zsh_data_dir/completions(N) $fpath)
+# directory: directory navigation.
+setopt auto_cd auto_pushd pushd_ignore_dups pushd_silent
+
+zsh_help '<directory>' 'a bare directory name cds into it'
+zsh_help 'cd -<Tab>' 'pick a recent directory'
+
+# editor: line editor keys. The emacs keymap is chosen in .zshrc, before the
+# plugins load.
+
+# Home/End differ between terminals, application mode and tmux.
+for key in '^[[H' '^[OH' '^[[1~'; do bindkey $key beginning-of-line; done
+for key in '^[[F' '^[OF' '^[[4~'; do bindkey $key end-of-line; done
+unset key
+bindkey '^[[3~' delete-char
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
+
+WORDCHARS=${WORDCHARS//\/}
+autoload -Uz edit-command-line
+
+zsh_help 'Ctrl-W' 'delete back to the previous word or /'
+zsh_bind '^X^E' edit-command-line 'edit the command line in $EDITOR'
 
 # --- Plugins, then compinit ---
 source $ZDOTDIR/lib/plugins.zsh

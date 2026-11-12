@@ -1,3 +1,16 @@
+# --- Completion styles (compinit itself runs after the plugins) ---
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*:descriptions' format '[%d]'
+zstyle ':completion:*:git-checkout:*' sort false
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path $zsh_cache_dir/zcompcache
+# Completion files outside plugins, highest priority first:
+#   $ZDOTDIR/completions        hand-written ones (_mytool)
+#   $zsh_data_dir/completions   generated ones: `tool completion zsh > _tool`
+#                               there instead of eval-ing it on every startup
+fpath=($ZDOTDIR/completions(N) $zsh_data_dir/completions(N) $fpath)
+
 # Initialize the completion system once, after the plugins have added their
 # completion directories to fpath and before conf.d registers completions
 # (compdef). A second compinit would cost another ~9 ms and drop every
