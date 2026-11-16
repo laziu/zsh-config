@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # zsh_help [-k key] <label> <description>
 # Add a line to the cheat sheet shown by `h` and Alt-H. Lines are grouped by the
-# configuration file that registered them: core (.zshrc), local (.zshrc.local)
+# configuration file that registered them: core (init.zsh), local (~/.zshrc)
 # or the conf.d file name. -k records the key the line describes, so that
 # zsh_unbind can drop it.
 emulate -L zsh
@@ -14,7 +14,7 @@ fi
 # The registering file is the nearest caller outside functions/.
 for entry in $funcfiletrace; do
   file=${entry%:*}
-  [[ $file == $ZDOTDIR/functions/* ]] || break
+  [[ $file == $zsh_config_dir/functions/* ]] || break
 done
 case ${file:t} in
   (init.zsh) group=core ;;

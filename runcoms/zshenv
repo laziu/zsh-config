@@ -1,0 +1,5 @@
+#!/usr/bin/env zsh
+# rustup adds no line while this file contains . "$HOME/.cargo/env";
+# lib/profile.zsh already puts ~/.cargo/bin on PATH.
+[[ -r ${XDG_CONFIG_HOME:-$HOME/.config}/zsh/lib/env.zsh ]] &&
+  source ${XDG_CONFIG_HOME:-$HOME/.config}/zsh/lib/env.zsh

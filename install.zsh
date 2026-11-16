@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # One-time setup of this zsh configuration on a machine. Safe to rerun.
-#   - Links ~/.zshenv to the .zshenv next to this script.
+#   - Writes this setup's block into ~/.zshenv, ~/.zprofile and ~/.zshrc.
 #   - Clones antidote, the plugin manager; it fetches the plugins on the first
 #     interactive shell.
 #   - Installs mise, the tool manager, with its official installer if missing,
@@ -8,10 +8,14 @@
 # Later updates: `antidote update` and `mise upgrade`; new shells say when
 # updates exist.
 emulate zsh
-setopt err_exit pipe_fail no_unset
+setopt err_exit pipe_fail no_unset extended_glob
 
-# Sets ZDOTDIR, MISE_GLOBAL_CONFIG_FILE and the zsh_*_dir layout.
+# Sets zsh_config_dir, MISE_GLOBAL_CONFIG_FILE and the zsh_*_dir layout.
 source ${0:A:h}/lib/env.zsh
+
+ok()   { print -r -- "ok: $*" }
+warn() { print -ru2 -- "warning: $*" }
+die()  { print -ru2 -- "install.zsh: $*"; exit 1 }
 
 missing=()
 for cmd in git curl; do
@@ -23,14 +27,65 @@ if (( $#missing )); then
   exit 1
 fi
 
-zshenv_link=$HOME/.zshenv
-if [[ ! -e $zshenv_link && ! -L $zshenv_link ]]; then
-  ln -s $ZDOTDIR/.zshenv $zshenv_link
-  print "ok: linked ~/.zshenv -> $ZDOTDIR/.zshenv"
-elif [[ ${zshenv_link:A} != $ZDOTDIR/.zshenv ]]; then
-  print -u2 "warning: ~/.zshenv is not a link to $ZDOTDIR/.zshenv, so zsh will not load this setup."
-  print -u2 "         Move it away (e.g. mv ~/.zshenv ~/.zshenv.bak) and run install.zsh again."
-fi
+# --- ~/.zshenv, ~/.zprofile, ~/.zshrc ---
+# Only the block between the markers belongs to this setup.
+
+marker_begin='# >>> zsh-config: managed by install.zsh >>>'
+marker_end='# <<< zsh-config <<<'
+
+# runcom_block <name>: set REPLY to the block for ~/.<name>.
+runcom_block() {
+  local default='${XDG_CONFIG_HOME:-$HOME/.config}/zsh'
+  local body=$(<$zsh_config_dir/runcoms/$1)
+  body=${body#\#!*$'\n'}
+  [[ $zsh_config_dir == ${${XDG_CONFIG_HOME:-$HOME/.config}/zsh:A} ]] ||
+    body=${body//$default/${(D)zsh_config_dir}}
+  REPLY=$marker_begin$'\n'$body$'\n'$marker_end
+}
+
+# runcoms <install|check|uninstall>: write, compare or remove the blocks;
+# check prints the files whose block is out of date.
+runcoms() {
+  local name file content updated
+  # Writing through a link would change its target instead, such as a file
+  # in a dotfiles repository.
+  if [[ $1 != check ]]; then
+    for name in zshenv zprofile zshrc; do
+      file=~/.$name
+      [[ -L $file ]] &&
+        die "${(D)file} is a symlink to $(readlink $file). Replace it with a regular file, then run install.zsh again."
+    done
+  fi
+  for name in zshenv zprofile zshrc; do
+    file=~/.$name
+    runcom_block $name
+    content=
+    [[ -r $file ]] && content=$(<$file)
+    if [[ $content == *$marker_begin*$marker_end* ]]; then
+      updated=${content%%$marker_begin*}$REPLY${content#*$marker_end}
+      [[ $1 == uninstall ]] && updated=${content%%$marker_begin*}${${content#*$marker_end}##$'\n'#}
+    elif [[ $1 == install && ! -e $file ]]; then
+      updated=$REPLY
+    else
+      [[ $1 == install ]] &&
+        warn "${(D)file} has no zsh-config block. Move it away (mv ${(D)file}{,.bak}) and run install.zsh again."
+      continue
+    fi
+    [[ $updated == $content ]] && { [[ $1 == install ]] && ok "${(D)file} is up to date"; continue }
+    case $1 in
+      (check) print -r -- ${(D)file} ;;
+      (install) print -r -- $updated >| $file && ok "${(D)file}: block written" ;;
+      (uninstall)
+        if [[ $updated == [[:space:]]# ]]; then
+          rm $file && ok "removed ${(D)file}"
+        else
+          print -r -- $updated >| $file && ok "${(D)file}: block removed, the rest kept"
+        fi ;;
+    esac
+  done
+}
+
+runcoms install
 
 if [[ ! -d $zsh_antidote_dir/.git ]]; then
   git clone --depth=1 --quiet https://github.com/mattmc3/antidote.git $zsh_antidote_dir

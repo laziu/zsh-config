@@ -8,7 +8,7 @@
 # warns above the prompt of every shell until fixed; the shell itself keeps
 # working. A plugin dropped on purpose in .zsh_plugins.local.txt fails quietly.
 emulate -L zsh
-local kind=$1 name=$2 file=${${funcfiletrace[1]%:*}#$ZDOTDIR/}
+local kind=$1 name=$2 file=${${funcfiletrace[1]%:*}#$zsh_config_dir/}
 case $kind in
   (plugin)
     (( $zsh_plugins_loaded[(Ie)$name] )) && return 0

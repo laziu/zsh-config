@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # zsh_unbind <key>
-# Remove a key binding together with its cheat sheet line; for .zshrc.local.
+# Remove a key binding and its cheat sheet line.
 emulate -L zsh
 local i
 bindkey -r $1

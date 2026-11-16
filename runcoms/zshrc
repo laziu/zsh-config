@@ -1,0 +1,10 @@
+#!/usr/bin/env zsh
+if [[ -n $zsh_config_dir ]]; then
+  # Powerlevel10k instant prompt: keep first; console input must go above it.
+  if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+  fi
+  source $zsh_config_dir/lib/init.zsh
+fi
+# In the form `p10k configure` looks for; otherwise it appends its own line.
+[[ ! -f $POWERLEVEL9K_CONFIG_FILE ]] || source $POWERLEVEL9K_CONFIG_FILE

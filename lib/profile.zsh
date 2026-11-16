@@ -1,8 +1,5 @@
-#!/usr/bin/env zsh
-# Login-shell environment. Read once per login (SSH, tmux panes, macOS
-# terminals) and inherited by every child process, so keep only exports here.
-# PATH lives here rather than in .zshenv because macOS /etc/zprofile
-# (path_helper) runs after .zshenv and would reorder it.
+# Sourced by ~/.zprofile once per login; children inherit it, so only exports.
+# PATH is set here, not in env.zsh, because macOS /etc/zprofile reorders it.
 
 typeset -U path PATH
 

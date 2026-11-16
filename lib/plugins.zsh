@@ -11,11 +11,11 @@
 
 fpath=($zsh_antidote_dir/functions $fpath)
 autoload -Uz antidote                                    # antidote update, install, ...
-zstyle ':antidote:bundle' file $ZDOTDIR/.zsh_plugins.txt # where `antidote install` adds
+zstyle ':antidote:bundle' file $zsh_config_dir/.zsh_plugins.txt # where `antidote install` adds
 zstyle ':antidote:bundle:*' shallow yes                  # skip the background full-history fetch
 
 () {
-  local base=$ZDOTDIR/.zsh_plugins.txt extra=$ZDOTDIR/.zsh_plugins.local.txt
+  local base=$zsh_config_dir/.zsh_plugins.txt extra=$zsh_config_dir/.zsh_plugins.local.txt
   local list=$zsh_cache_dir/plugins.txt static=$zsh_cache_dir/plugins.zsh
   # $list.local holds the plugins $extra drops. It exists only for a list
   # built with $extra, so deleting $extra rebuilds the list.

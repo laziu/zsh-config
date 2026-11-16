@@ -1,5 +1,6 @@
-# powerlevel10k: the prompt. `p10k configure` writes $ZDOTDIR/.p10k.zsh, which
-# .zshrc loads last.
+# powerlevel10k: the prompt. `p10k configure` writes this machine's style here
+# (git-ignored); ~/.zshrc sources it.
 zsh_requires plugin romkatv/powerlevel10k || return
 
+POWERLEVEL9K_CONFIG_FILE=$zsh_config_dir/.p10k.zsh
 zsh_help 'p10k configure' 'restyle the prompt'
