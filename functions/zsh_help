@@ -17,8 +17,8 @@ for entry in $funcfiletrace; do
   [[ $file == $ZDOTDIR/functions/* ]] || break
 done
 case ${file:t} in
-  (.zshrc) group=core ;;
-  (.zshrc.local) group=local ;;
+  (init.zsh) group=core ;;
+  (.zshrc) group=local ;;
   (*) group=${file:t:r} ;;
 esac
 # Quoted: an unquoted empty $key would append nothing and misalign the arrays.

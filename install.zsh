@@ -11,7 +11,7 @@ emulate zsh
 setopt err_exit pipe_fail no_unset
 
 # Sets ZDOTDIR, MISE_GLOBAL_CONFIG_FILE and the zsh_*_dir layout.
-source ${0:A:h}/.zshenv
+source ${0:A:h}/lib/env.zsh
 
 missing=()
 for cmd in git curl; do
