@@ -16,7 +16,16 @@ zsh-update() {
   fi
   if [[ -z $stamp(#qN.mh-24) ]]; then
     : >| $stamp
-    { $zsh_config_dir/install.zsh --check >| $notice.new && mv -f $notice.new $notice } &>/dev/null &!
+    # A name of its own per shell; a check that cannot run says so instead
+    # of leaving the notice empty for a day.
+    {
+      if $zsh_config_dir/install.zsh --check >| $notice.$$; then
+        mv -f $notice.$$ $notice
+      else
+        rm -f $notice.$$
+        print -r -- "zsh: the daily update check failed; run ${(D)zsh_config_dir}/install.zsh --check" >| $notice
+      fi
+    } &>/dev/null &!
   fi
 }
 
