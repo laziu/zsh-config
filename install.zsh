@@ -82,16 +82,24 @@ runcoms() {
 
 # --- antidote ---
 
-# plugins_behind: print the antidote checkouts whose branch is behind upstream.
-# A pinned checkout (pin:, a detached HEAD) stays put on update, so it never is.
+# plugin_behind <dir>: print <dir> when its branch is behind upstream. A pinned
+# checkout (pin:, a detached HEAD) stays put on update, so it never is.
+plugin_behind() {
+  local head branch remote
+  head=$(git -C $1 rev-parse HEAD 2>/dev/null) || return
+  branch=$(git -C $1 symbolic-ref --short -q HEAD) || return
+  remote=$(git -C $1 ls-remote origin refs/heads/$branch 2>/dev/null) || return
+  [[ -n $remote && ${remote%%[[:space:]]*} != $head ]] && print -r -- $1
+}
+
+# plugins_behind: print the antidote checkouts behind upstream, checked in
+# parallel since each asks the network.
 plugins_behind() {
-  local dir head branch remote
+  local dir
   for dir in $zsh_antidote_dir ${(f)"$(antidote list --dirs 2>/dev/null)"}; do
-    head=$(git -C $dir rev-parse HEAD 2>/dev/null) || continue
-    branch=$(git -C $dir symbolic-ref --short -q HEAD) || continue
-    remote=$(git -C $dir ls-remote origin refs/heads/$branch 2>/dev/null) || continue
-    [[ -n $remote && ${remote%%[[:space:]]*} != $head ]] && print -r -- $dir
+    plugin_behind $dir &
   done
+  wait
 }
 
 # --- mise tools ---
