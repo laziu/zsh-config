@@ -35,7 +35,10 @@ autoload -Uz compinit
     # compinit rewrites the dump only when completions change; refresh the
     # mtime so the next shells take the fast path. No dump means compinit
     # was aborted (e.g. at the insecure-directories prompt); retry next time.
-    [[ -s $dump ]] && touch $dump
+    if [[ -s $dump ]]; then
+      touch $dump
+      zcompile $dump
+    fi
   else
     compinit -C -d $dump
   fi
