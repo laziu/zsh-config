@@ -1,0 +1,3 @@
+# LF on checkout for every git, Windows Git with core.autocrlf=true included
+# (e.g. through \\wsl.localhost): zsh fails on scripts with CRLF.
+* text=auto eol=lf
