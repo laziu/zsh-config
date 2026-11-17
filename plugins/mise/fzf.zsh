@@ -1,4 +1,5 @@
 # fzf: fuzzy pickers for history, files and directories.
+
 zsh_init_cache fzf --zsh || return
 source $REPLY
 # fzf just bound Tab (main keymap) to its `**` completion, over fzf-tab, which

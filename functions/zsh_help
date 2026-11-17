@@ -2,7 +2,7 @@
 # zsh_help [-k key] <label> <description>
 # Add a line to the cheat sheet shown by `h` and Alt-H. Lines are grouped by the
 # configuration file that registered them: core (init.zsh), local (~/.zshrc)
-# or the conf.d file name. -k records the key the line describes, so that
+# or the plugins/ file name. -k records the key the line describes, so that
 # zsh_unbind can drop it.
 emulate -L zsh
 typeset -ga zsh_help_groups zsh_help_labels zsh_help_texts zsh_help_keys

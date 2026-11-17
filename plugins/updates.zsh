@@ -1,5 +1,5 @@
-# updates: daily background check for plugin and tool updates. A shell started
-# after the check shows the result once, above its first prompt (zsh_notice).
+# updates: a daily background `install.zsh --check`; its result is shown once,
+# above the first prompt of a later shell (zsh_notice).
 
 zsh-update() {
   $zsh_config_dir/install.zsh "$@"

@@ -31,15 +31,13 @@ autoload -Uz $zsh_config_dir/functions/*(N:t)
 # bound below and in plugins/ (sudo, help and each plugin's file).
 bindkey -e
 
-# directory: directory navigation.
+# --- Directories ---
 setopt auto_cd auto_pushd pushd_ignore_dups pushd_silent
 
 zsh_help '<directory>' 'a bare directory name cds into it'
 zsh_help 'cd -<Tab>' 'pick a recent directory'
 
-# editor: line editor keys. The emacs keymap is chosen in .zshrc, before the
-# plugins load.
-
+# --- Line editor ---
 # Home/End differ between terminals, application mode and tmux.
 for key in '^[[H' '^[OH' '^[[1~'; do bindkey $key beginning-of-line; done
 for key in '^[[F' '^[OF' '^[[4~'; do bindkey $key end-of-line; done

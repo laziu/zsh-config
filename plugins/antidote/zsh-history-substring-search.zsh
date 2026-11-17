@@ -1,5 +1,5 @@
-# history-substring-search: Up/Down find history entries containing the typed
-# text anywhere, like fish.
+# zsh-history-substring-search: Up/Down find history entries containing the
+# typed text anywhere, like fish.
 
 HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1  # read on every search
 zsh_bind '^[[A' history-substring-search-up 'previous commands containing the typed text'

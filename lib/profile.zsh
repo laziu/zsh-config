@@ -6,6 +6,7 @@ typeset -U path PATH
 # Homebrew on Apple Silicon macOS; skipped elsewhere.
 [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 
+# ~/.cargo/bin: rustup, and tools that mise builds with cargo.
 path=(
   ~/.local/bin(N)
   ~/.cargo/bin(N)

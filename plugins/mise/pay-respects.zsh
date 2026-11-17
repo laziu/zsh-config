@@ -1,4 +1,5 @@
 # pay-respects: suggest a fix for the previous command.
+
 zsh_init_cache pay-respects zsh --alias || return
 source $REPLY
 
