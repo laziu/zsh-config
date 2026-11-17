@@ -14,9 +14,9 @@ updates_check() {
     remote=$(git -C $dir ls-remote origin HEAD 2>/dev/null) || continue
     [[ ${remote%%[[:space:]]*} == $head ]] || (( ++plugins ))
   done
-  (( $+commands[mise] )) && outdated_tools=(${(f)"$(mise outdated --no-header 2>/dev/null)"})
+  (( $+commands[mise] )) && outdated_tools=(${(f)"$(mise -C $zsh_cache_dir outdated --no-header 2>/dev/null)"})
   (( plugins )) && parts+=("$plugins plugin(s): antidote update")
-  (( $#outdated_tools )) && parts+=("$#outdated_tools tool(s): mise upgrade")
+  (( $#outdated_tools )) && parts+=("$#outdated_tools tool(s): mise -C ${(D)zsh_cache_dir} upgrade")
   if (( $#parts )); then
     print -r -- "zsh: updates available: ${(j:; :)parts}" >| $out.tmp
   else

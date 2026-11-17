@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+# zsh_plugin_file <entry>
+# Set REPLY to the plugins/ file of a plugins.txt entry (its first word);
+# fail when that file does not exist.
+emulate -L zsh
+local name=${1##*[:/]}
+case $1 in
+  (antidote:*) REPLY=$zsh_config_dir/plugins/antidote/$name.zsh ;;
+  (mise:*)     REPLY=$zsh_config_dir/plugins/mise/$name.zsh ;;
+  (*)          REPLY=$zsh_config_dir/plugins/$1.zsh ;;
+esac
+[[ -r $REPLY ]]

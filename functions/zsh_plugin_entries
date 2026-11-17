@@ -1,0 +1,25 @@
+#!/usr/bin/env zsh
+# zsh_plugin_entries
+# Set reply to the entries of plugins.txt, after plugins.local.txt: `-<entry>`
+# drops an entry, other lines are appended.
+emulate -L zsh
+setopt extended_glob
+local file line
+local -a entries dropped
+for file in $zsh_config_dir/plugins{,.local}.txt; do
+  [[ -r $file ]] || continue
+  for line in ${(f)"$(<$file)"}; do
+    line=${line%%\#*}
+    line=${${line##[[:space:]]##}%%[[:space:]]##}
+    line=${line//[[:space:]]##/ }
+    case $line in
+      ('') ;;
+      (-*) dropped+=(${line#-}) ;;
+      (*) entries+=($line) ;;
+    esac
+  done
+done
+reply=()
+for line in $entries; do
+  (( $dropped[(Ie)${line%% *}] )) || reply+=($line)
+done

@@ -1,11 +1,18 @@
-# zsh plugins, loaded by antidote in this order (lib/plugins.zsh).
-# Settings for each are in the conf.d file whose `zsh_requires plugin` line
-# names it; conf.d runs after all plugins.
-# Binary tools are in mise.toml. Per-machine changes: .zsh_plugins.local.txt.
+# Loaded top to bottom. Each entry also loads its file under plugins/, if any:
+#   antidote:<owner>/<repo> [annotations]  plugins/antidote/<repo>.zsh
+#   mise:<tool> [bin:<command>]            plugins/mise/<last part of tool>.zsh
+#   <name>                                 plugins/<name>.zsh
 
-romkatv/powerlevel10k
-zsh-users/zsh-completions kind:fpath path:src
-Aloxaf/fzf-tab
-zsh-users/zsh-autosuggestions
-zsh-users/zsh-syntax-highlighting
-zsh-users/zsh-history-substring-search  # after zsh-syntax-highlighting
+antidote:romkatv/powerlevel10k
+antidote:zsh-users/zsh-completions kind:fpath path:src
+completion                      # after every completion dir is on fpath
+antidote:Aloxaf/fzf-tab         # after compinit, before plugins that wrap widgets
+mise:fzf                        # after fzf-tab, to give Tab back to it
+mise:zoxide                     # after compinit, for the z completion
+mise:github:iffse/pay-respects
+sudo
+help
+updates
+antidote:zsh-users/zsh-autosuggestions
+antidote:zsh-users/zsh-syntax-highlighting       # after every widget is defined
+antidote:zsh-users/zsh-history-substring-search  # after zsh-syntax-highlighting

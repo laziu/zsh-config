@@ -1,5 +1,4 @@
-# pay-respects: suggest a fix for the previous command (mise.toml).
-zsh_requires command pay-respects || return
+# pay-respects: suggest a fix for the previous command.
 zsh_init_cache pay-respects zsh --alias || return
 source $REPLY
 

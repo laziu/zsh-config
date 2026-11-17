@@ -1,4 +1,4 @@
-# --- Completion styles (compinit itself runs after the plugins) ---
+# completion: completion styles, then compinit.
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*:descriptions' format '[%d]'
@@ -11,10 +11,10 @@ zstyle ':completion:*' cache-path $zsh_cache_dir/zcompcache
 #                                there instead of eval-ing it on every startup
 fpath=($zsh_config_dir/completions(N) $zsh_data_dir/completions(N) $fpath)
 
-# Initialize the completion system once, after the plugins have added their
-# completion directories to fpath and before conf.d registers completions
-# (compdef). A second compinit would cost another ~9 ms and drop every
-# completion registered in between. Sourced by .zshrc.
+# Initialize the completion system once, after the entries above it have added
+# their completion directories to fpath and before the entries below register
+# completions (compdef). A second compinit would cost another ~9 ms and drop
+# every completion registered in between.
 
 autoload -Uz compinit
 () {

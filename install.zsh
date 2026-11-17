@@ -4,14 +4,16 @@
 #   - Clones antidote, the plugin manager; it fetches the plugins on the first
 #     interactive shell.
 #   - Installs mise, the tool manager, with its official installer if missing,
-#     then the tools in mise.toml.
-# Later updates: `antidote update` and `mise upgrade`; new shells say when
-# updates exist.
+#     then the mise: entries of plugins.txt.
+# Later updates: `antidote update` and `mise -C ~/.cache/zsh upgrade`; new
+# shells say when updates exist.
 emulate zsh
 setopt err_exit pipe_fail no_unset extended_glob
 
-# Sets zsh_config_dir, MISE_GLOBAL_CONFIG_FILE and the zsh_*_dir layout.
+# Sets zsh_config_dir and the zsh_*_dir layout.
 source ${0:A:h}/lib/env.zsh
+fpath=($zsh_config_dir/functions $fpath)
+autoload -Uz zsh_plugin_entries
 
 ok()   { print -r -- "ok: $*" }
 warn() { print -ru2 -- "warning: $*" }
@@ -96,6 +98,16 @@ mise=${commands[mise]:-$HOME/.local/bin/mise}
 if [[ ! -x $mise ]]; then
   curl -fsSL https://mise.run | sh  # installs to ~/.local/bin/mise
 fi
-$mise install
-print "ok: tools from mise.toml installed"
+# A config of its own leaves the user's mise config alone.
+zsh_plugin_entries
+tools=(${${${(M)reply:#mise:*}%% *}#mise:})
+mise_config=$zsh_cache_dir/mise.toml
+mkdir -p $zsh_cache_dir
+{
+  print "[tools]"
+  for tool in $tools; do print -r -- "\"$tool\" = \"latest\""; done
+} >| $mise_config
+$mise trust --quiet $mise_config
+$mise -C $zsh_cache_dir install
+print "ok: tools from plugins.txt installed"
 print "Done. Start a new login shell (exec zsh -l); the first start fetches the plugins."

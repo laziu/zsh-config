@@ -6,7 +6,7 @@ typeset -U path PATH
 # Homebrew on Apple Silicon macOS; skipped elsewhere.
 [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 
-# Tools from mise.toml. mise keeps installs/<tool>/latest pointing at the
+# mise: tools in plugins.txt. mise keeps installs/<tool>/latest pointing at the
 # newest installed version, so these entries never change. They replace mise's
 # shims, which run mise itself on every call (~10 ms each, e.g. on every cd
 # through zoxide). A tool installed after login appears in the next login shell.

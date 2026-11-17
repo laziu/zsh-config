@@ -1,6 +1,5 @@
-# zoxide: jump to directories by a part of their path, ranked by use
-# (mise.toml). Runs after compinit, which its `z` completion needs.
-zsh_requires command zoxide || return
+# zoxide: jump to directories by a part of their path, ranked by use.
+# Runs after compinit, which its `z` completion needs.
 zsh_init_cache zoxide init zsh || return
 source $REPLY
 
