@@ -82,13 +82,15 @@ runcoms() {
 
 # --- antidote ---
 
-# plugins_behind: print the antidote checkouts behind upstream.
+# plugins_behind: print the antidote checkouts whose branch is behind upstream.
+# A pinned checkout (pin:, a detached HEAD) stays put on update, so it never is.
 plugins_behind() {
-  local dir head remote
+  local dir head branch remote
   for dir in $zsh_antidote_dir ${(f)"$(antidote list --dirs 2>/dev/null)"}; do
     head=$(git -C $dir rev-parse HEAD 2>/dev/null) || continue
-    remote=$(git -C $dir ls-remote origin HEAD 2>/dev/null) || continue
-    [[ ${remote%%[[:space:]]*} == $head ]] || print -r -- $dir
+    branch=$(git -C $dir symbolic-ref --short -q HEAD) || continue
+    remote=$(git -C $dir ls-remote origin refs/heads/$branch 2>/dev/null) || continue
+    [[ -n $remote && ${remote%%[[:space:]]*} != $head ]] && print -r -- $dir
   done
 }
 
