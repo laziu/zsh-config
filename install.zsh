@@ -126,12 +126,12 @@ version_of() {
 }
 
 # user_copy <command>: set REPLY to the first <command> on PATH that is not
-# one of mise's installs/<tool>/latest directories.
+# mise's own: one of its installs/<tool>/latest directories, or its shims.
 user_copy() {
-  local installs=${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}/installs
+  local data=${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}
   local dir
   for dir in $path; do
-    [[ $dir == $installs/*/latest(|/bin) ]] && continue
+    [[ $dir == ($data/installs/*/latest(|/bin)|$data/shims) ]] && continue
     [[ -f $dir/$1 && -x $dir/$1 ]] && { REPLY=$dir/$1; return 0 }
   done
   return 1
