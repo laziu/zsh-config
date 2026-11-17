@@ -300,11 +300,8 @@ install() {
   for cmd in git curl; do
     (( $+commands[$cmd] )) || missing+=($cmd)
   done
-  if (( $#missing )); then
-    print -u2 "install.zsh: required commands are missing: $missing"
-    print -u2 "Install them first, e.g. 'sudo dnf install $missing' or 'sudo apt install $missing'."
-    exit 1
-  fi
+  (( $#missing )) && die "required commands are missing: $missing." \
+    "Install them first, e.g. 'sudo dnf install $missing' or 'sudo apt install $missing'."
 
   runcoms install
 
@@ -316,14 +313,14 @@ install() {
   fi
   # Rebuilt by the next shell, so it follows a moved directory too.
   rm -f $zsh_cache_dir/plugins.zsh{,.zwc}
-  print "ok: antidote in $zsh_antidote_dir"
+  ok "antidote in ${(D)zsh_antidote_dir}; the next shell loads the plugins"
 
   if [[ ! -x $mise ]]; then
     curl -fsSL https://mise.run | sh || die "installing mise failed"  # installs to ~/.local/bin/mise
   fi
   tools_sync
   rm -f $zsh_cache_dir/updates  # the daily check's notice, now done
-  print "Done. Start a new login shell (exec zsh -l); the first start fetches the plugins."
+  print "Done. Start a new login shell to use it: exec zsh -l"
 }
 
 case ${1:-} in
