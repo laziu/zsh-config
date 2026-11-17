@@ -1,6 +1,10 @@
 # updates: daily background check for plugin and tool updates. A shell started
 # after the check shows the result once, above its first prompt (zsh_notice).
 
+zsh-update() {
+  $zsh_config_dir/install.zsh "$@"
+}
+
 () {
   setopt local_options extended_glob
   local notice=$zsh_cache_dir/updates shown=$zsh_cache_dir/updates.shown
@@ -15,3 +19,5 @@
     { $zsh_config_dir/install.zsh --check >| $notice.new && mv -f $notice.new $notice } &>/dev/null &!
   fi
 }
+
+zsh_help 'zsh-update' 'update plugins, tools and ~/.zsh*'

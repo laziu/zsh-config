@@ -1,21 +1,22 @@
 #!/usr/bin/env zsh
-# One-time setup of this zsh configuration on a machine. Safe to rerun.
+# Sets up this zsh configuration on a machine; rerun (`zsh-update`) to update it.
 #   - Writes this setup's block into ~/.zshenv, ~/.zprofile and ~/.zshrc.
-#   - Clones antidote, the plugin manager; it fetches the plugins on the first
-#     interactive shell.
+#   - Clones antidote, the plugin manager, or updates it and the plugins; it
+#     fetches the plugins on the first interactive shell.
 #   - Installs mise, the tool manager, with its official installer if missing,
 #     then the mise: entries of plugins.txt that are missing from PATH or
 #     older there than mise's latest.
-# Later updates: `antidote update` and `mise -C ~/.cache/zsh upgrade`; new
-# shells say when updates exist (install.zsh --check, run daily by
-# plugins/updates.zsh).
+# Other modes:
+#   install.zsh --check      print what an update would change, or nothing
+#   install.zsh --uninstall  remove this setup from the machine
+# New shells say when updates exist.
 emulate zsh
-setopt pipe_fail no_unset extended_glob
+setopt pipe_fail extended_glob
 
 # Sets zsh_config_dir and the zsh_*_dir layout.
 source ${0:A:h}/lib/env.zsh
 fpath=($zsh_config_dir/functions $zsh_antidote_dir/functions $fpath)
-autoload -Uz zsh_plugin_entries is-at-least antidote
+autoload -Uz zsh_plugin_entries zsh_plugin_file is-at-least antidote
 
 ok()   { print -r -- "ok: $*" }
 warn() { print -ru2 -- "warning: $*" }
@@ -76,6 +77,18 @@ runcoms() {
           print -r -- $updated >| $file && ok "${(D)file}: block removed, the rest kept"
         fi ;;
     esac
+  done
+}
+
+# --- antidote ---
+
+# plugins_behind: print the antidote checkouts behind upstream.
+plugins_behind() {
+  local dir head remote
+  for dir in $zsh_antidote_dir ${(f)"$(antidote list --dirs 2>/dev/null)"}; do
+    head=$(git -C $dir rev-parse HEAD 2>/dev/null) || continue
+    remote=$(git -C $dir ls-remote origin HEAD 2>/dev/null) || continue
+    [[ ${remote%%[[:space:]]*} == $head ]] || print -r -- $dir
   done
 }
 
@@ -141,7 +154,7 @@ tools_plan() {
     note[$tool]="$user ${REPLY:-(version unknown)}"
     latest=$($mise latest $tool 2>/dev/null)
     if [[ -z $latest ]]; then
-      warn "$tool: could not get mise's latest version, so the current choice stays. Run install.zsh again when online."
+      warn "$tool: could not get mise's latest version, so the current choice stays. Run zsh-update again when online."
       if (( $configured[(Ie)$tool] )); then
         keep+=($tool)
         note[$tool]="mise's latest unknown; $user is ${note[$tool]#* }"
@@ -211,25 +224,74 @@ tools_sync() {
   rm -rf $zsh_cache_dir/init  # zsh_init_cache output of replaced binaries
 }
 
+# tools_due: add to check's due the tools zsh-update would change (provided
+# by mise or not as planned, missing, or behind mise's latest), and to its
+# problems the ones without their command.
+tools_due() {
+  local tool bin
+  local -a kept
+  tools_plan 2>/dev/null
+  due+=(${keep:|configured} ${configured:|keep})
+  kept=(${keep:*configured})
+  for tool in $kept; do
+    bin=$bins[$tools[(Ie)$tool]]
+    tool_dir $tool $bin
+    case $? in
+      (2) due+=($tool) ;;
+      (1) problems+=("plugins.txt: mise:$tool has no '$bin' command; name it with bin:<command>") ;;
+    esac
+  done
+  (( $#kept )) &&
+    due+=(${(f)"$($mise -C $zsh_cache_dir outdated --no-header $kept 2>/dev/null | cut -d' ' -f1)"})
+}
+
 # --- Modes ---
 
-# check: compare installed plugins (antidote) and tools (mise) with upstream and
-# print a one-line notice, nothing when everything is current.
+# check: print what zsh-update would change, and entries of plugins.txt that
+# do not work; nothing when all is well.
 check() {
-  emulate -L zsh
-  local dir head remote
-  local -a outdated_tools parts
-  local -i plugins=0
-  for dir in $zsh_antidote_dir ${(f)"$(antidote list --dirs 2>/dev/null)"}; do
-    head=$(git -C $dir rev-parse HEAD 2>/dev/null) || continue
-    remote=$(git -C $dir ls-remote origin HEAD 2>/dev/null) || continue
-    [[ ${remote%%[[:space:]]*} == $head ]] || (( ++plugins ))
+  local -a due problems files
+  local entry word
+  files=(${(f)"$(runcoms check)"})
+  (( $#files )) && due+=("block in ${(j:, :)files}")
+  files=(${(f)"$(plugins_behind)"})
+  (( $#files )) && due+=("$#files plugin(s)")
+  if [[ -x $mise ]]; then
+    tools_due
+  else
+    due+=(mise)
+  fi
+  zsh_plugin_entries
+  for entry in $reply; do
+    word=${entry%% *}
+    [[ $word == *:* ]] || zsh_plugin_file $word ||
+      problems+=("plugins.txt: '$word' has no plugins/$word.zsh")
   done
-  (( $+commands[mise] )) && outdated_tools=(${(f)"$(mise -C $zsh_cache_dir outdated --no-header 2>/dev/null)"})
-  (( plugins )) && parts+=("$plugins plugin(s): antidote update")
-  (( $#outdated_tools )) && parts+=("$#outdated_tools tool(s): mise -C ${(D)zsh_cache_dir} upgrade")
-  (( $#parts )) && print -r -- "zsh: updates available: ${(j:; :)parts}"
+  (( $#due )) && print -r -- "zsh: updates for ${(j:, :)${(u)due}}; run zsh-update"
+  (( $#problems )) && print -rl -- ${problems/#/zsh: }
   return 0
+}
+
+# confirm <question>: no unless answered y on a terminal.
+confirm() {
+  [[ -t 0 ]] || return 1
+  read -q "?$1 [y/N] "
+  local answer=$?
+  print
+  return $answer
+}
+
+uninstall() {
+  runcoms uninstall
+  rm -rf $zsh_cache_dir $zsh_antidote_dir
+  rmdir $zsh_data_dir 2>/dev/null  # kept while it holds completions
+  ok "removed ${(D)zsh_cache_dir} and ${(D)zsh_antidote_dir}"
+  local -a p10k=(${XDG_CACHE_HOME:-$HOME/.cache}/{p10k-*,gitstatus}(N))
+  if (( $#p10k )) && confirm "Delete powerlevel10k's caches (${(j:, :)${(D)p10k}})?"; then
+    rm -rf $p10k && ok "removed powerlevel10k's caches"
+  fi
+  print "Kept: the history in ${(D)zsh_state_dir}, and mise's tools ('mise prune'"
+  print "deletes the ones nothing else uses). Delete ${(D)zsh_config_dir} to finish."
 }
 
 install() {
@@ -246,7 +308,9 @@ install() {
 
   runcoms install
 
-  if [[ ! -d $zsh_antidote_dir/.git ]]; then
+  if [[ -d $zsh_antidote_dir/.git ]]; then
+    antidote update || warn "antidote update failed"
+  else
     git clone --depth=1 --quiet https://github.com/mattmc3/antidote.git $zsh_antidote_dir ||
       die "cloning antidote failed"
   fi
@@ -256,11 +320,13 @@ install() {
     curl -fsSL https://mise.run | sh || die "installing mise failed"  # installs to ~/.local/bin/mise
   fi
   tools_sync
+  rm -f $zsh_cache_dir/updates  # the daily check's notice, now done
   print "Done. Start a new login shell (exec zsh -l); the first start fetches the plugins."
 }
 
 case ${1:-} in
   ('') install ;;
   (--check) check ;;
-  (*) die "usage: install.zsh [--check]" ;;
+  (--uninstall) uninstall ;;
+  (*) die "usage: install.zsh [--check | --uninstall]" ;;
 esac
