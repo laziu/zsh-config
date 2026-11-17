@@ -7,28 +7,19 @@
 #     then the mise: entries of plugins.txt that are missing from PATH or
 #     older there than mise's latest.
 # Later updates: `antidote update` and `mise -C ~/.cache/zsh upgrade`; new
-# shells say when updates exist.
+# shells say when updates exist (install.zsh --check, run daily by
+# plugins/updates.zsh).
 emulate zsh
 setopt pipe_fail no_unset extended_glob
 
 # Sets zsh_config_dir and the zsh_*_dir layout.
 source ${0:A:h}/lib/env.zsh
-fpath=($zsh_config_dir/functions $fpath)
-autoload -Uz zsh_plugin_entries is-at-least
+fpath=($zsh_config_dir/functions $zsh_antidote_dir/functions $fpath)
+autoload -Uz zsh_plugin_entries is-at-least antidote
 
 ok()   { print -r -- "ok: $*" }
 warn() { print -ru2 -- "warning: $*" }
 die()  { print -ru2 -- "install.zsh: $*"; exit 1 }
-
-missing=()
-for cmd in git curl; do
-  (( $+commands[$cmd] )) || missing+=($cmd)
-done
-if (( $#missing )); then
-  print -u2 "install.zsh: required commands are missing: $missing"
-  print -u2 "Install them first, e.g. 'sudo dnf install $missing' or 'sudo apt install $missing'."
-  exit 1
-fi
 
 # --- ~/.zshenv, ~/.zprofile, ~/.zshrc ---
 # Only the block between the markers belongs to this setup.
@@ -88,22 +79,11 @@ runcoms() {
   done
 }
 
-runcoms install
-
-if [[ ! -d $zsh_antidote_dir/.git ]]; then
-  git clone --depth=1 --quiet https://github.com/mattmc3/antidote.git $zsh_antidote_dir ||
-    die "cloning antidote failed"
-fi
-print "ok: antidote in $zsh_antidote_dir"
-
 # --- mise tools ---
 # mise provides a tool only where no copy at least as new as mise's latest is
 # already on PATH; lib/profile.zsh puts the ones it provides first.
 
 mise=${commands[mise]:-$HOME/.local/bin/mise}
-if [[ ! -x $mise ]]; then
-  curl -fsSL https://mise.run | sh || die "installing mise failed"  # installs to ~/.local/bin/mise
-fi
 mise_config=$zsh_cache_dir/mise.toml
 mise_path=$zsh_cache_dir/mise-path.zsh
 
@@ -231,5 +211,56 @@ tools_sync() {
   rm -rf $zsh_cache_dir/init  # zsh_init_cache output of replaced binaries
 }
 
-tools_sync
-print "Done. Start a new login shell (exec zsh -l); the first start fetches the plugins."
+# --- Modes ---
+
+# check: compare installed plugins (antidote) and tools (mise) with upstream and
+# print a one-line notice, nothing when everything is current.
+check() {
+  emulate -L zsh
+  local dir head remote
+  local -a outdated_tools parts
+  local -i plugins=0
+  for dir in $zsh_antidote_dir ${(f)"$(antidote list --dirs 2>/dev/null)"}; do
+    head=$(git -C $dir rev-parse HEAD 2>/dev/null) || continue
+    remote=$(git -C $dir ls-remote origin HEAD 2>/dev/null) || continue
+    [[ ${remote%%[[:space:]]*} == $head ]] || (( ++plugins ))
+  done
+  (( $+commands[mise] )) && outdated_tools=(${(f)"$(mise -C $zsh_cache_dir outdated --no-header 2>/dev/null)"})
+  (( plugins )) && parts+=("$plugins plugin(s): antidote update")
+  (( $#outdated_tools )) && parts+=("$#outdated_tools tool(s): mise -C ${(D)zsh_cache_dir} upgrade")
+  (( $#parts )) && print -r -- "zsh: updates available: ${(j:; :)parts}"
+  return 0
+}
+
+install() {
+  local -a missing
+  local cmd
+  for cmd in git curl; do
+    (( $+commands[$cmd] )) || missing+=($cmd)
+  done
+  if (( $#missing )); then
+    print -u2 "install.zsh: required commands are missing: $missing"
+    print -u2 "Install them first, e.g. 'sudo dnf install $missing' or 'sudo apt install $missing'."
+    exit 1
+  fi
+
+  runcoms install
+
+  if [[ ! -d $zsh_antidote_dir/.git ]]; then
+    git clone --depth=1 --quiet https://github.com/mattmc3/antidote.git $zsh_antidote_dir ||
+      die "cloning antidote failed"
+  fi
+  print "ok: antidote in $zsh_antidote_dir"
+
+  if [[ ! -x $mise ]]; then
+    curl -fsSL https://mise.run | sh || die "installing mise failed"  # installs to ~/.local/bin/mise
+  fi
+  tools_sync
+  print "Done. Start a new login shell (exec zsh -l); the first start fetches the plugins."
+}
+
+case ${1:-} in
+  ('') install ;;
+  (--check) check ;;
+  (*) die "usage: install.zsh [--check]" ;;
+esac
