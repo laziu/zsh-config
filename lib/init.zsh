@@ -52,9 +52,19 @@ autoload -Uz edit-command-line
 zsh_help 'Ctrl-W' 'delete back to the previous word or /'
 zsh_bind '^X^E' edit-command-line 'edit the command line in $EDITOR'
 
+# --- Terminal title: user@host: directory, where bash sets it too ---
+if [[ $TERM == (xterm*|rxvt*) ]]; then
+  zsh_title() { print -Pn '\e]0;%n@%m: %~\a' }
+  autoload -Uz add-zsh-hook
+  add-zsh-hook precmd zsh_title
+fi
+
 # --- Plugins (plugins.txt) ---
 source $zsh_config_dir/lib/plugins.zsh
 
 # --- Aliases (after plugins, so plugin code is not affected by them) ---
 [[ $OSTYPE == linux* ]] && alias ls='ls --color=auto'  # macOS uses CLICOLOR instead
 alias grep='grep --color=auto'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'

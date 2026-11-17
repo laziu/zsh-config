@@ -26,3 +26,14 @@ export EDITOR VISUAL=$EDITOR
 export PAGER=less
 export LESS='-FiR'  # quit if one screen, smart-case search, pass colors through
 export CLICOLOR=1   # colored ls on macOS/BSD; ignored by GNU ls
+
+# As Debian's ~/.bashrc does: LS_COLORS for ls, completion lists and other
+# tools, and lesspipe so less shows archives, PDFs and other non-text files.
+# Their output is cached (zsh_init_cache), saving two processes per login.
+autoload -Uz $zsh_config_dir/functions/zsh_init_cache
+if [[ -r ~/.dircolors ]]; then
+  (( $+commands[dircolors] )) && eval "$(dircolors -b ~/.dircolors)"
+elif zsh_init_cache dircolors -b; then
+  source $REPLY
+fi
+zsh_init_cache lesspipe && source $REPLY
