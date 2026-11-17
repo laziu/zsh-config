@@ -9,7 +9,6 @@ typeset -U path PATH
 path=(
   ~/.local/bin(N)
   ~/.cargo/bin(N)
-  ~/.local/share/fnm(N)
   $path
 )
 
