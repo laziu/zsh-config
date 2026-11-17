@@ -9,6 +9,9 @@ zstyle ':antidote:bundle:/*' zcompile no                 # local files: no .zwc 
 
 () {
   local list=$zsh_cache_dir/plugins.txt static=$zsh_cache_dir/plugins.zsh
+  # Shells started together (e.g. tmux panes) may all rebuild at once, so each
+  # writes under a name of its own and renames when done.
+  local tmp=$zsh_cache_dir/plugins.$$
   local dir=$zsh_config_dir/plugins input stale=0
   # Directory mtimes catch added or removed files, plugins.local.txt included.
   # A missing $ANTIDOTE_HOME (clones deleted) also counts as stale.
@@ -29,10 +32,13 @@ zstyle ':antidote:bundle:/*' zcompile no                 # local files: no .zwc 
       zsh_notice "zsh: plugins.txt: '$word' has no plugins/$word.zsh"
     fi
   done
-  print -rl -- $lines >| $list
+  print -rl -- $lines >| $tmp.txt
+  mv -f $tmp.txt $list
   # On failure (e.g. offline) keep the previous script.
-  antidote bundle <$list >| $static.new || { rm -f $static.new; return 1 }
-  mv -f $static.new $static
-  zcompile $static
+  antidote bundle <$list >| $tmp.zsh || { rm -f $tmp.zsh; return 1 }
+  mv -f $tmp.zsh $static
+  # Compiled under the script's own name, which source looks up in the .zwc.
+  zcompile $tmp.zwc $static
+  mv -f $tmp.zwc $static.zwc
 }
 [[ -r $zsh_cache_dir/plugins.zsh ]] && source $zsh_cache_dir/plugins.zsh
