@@ -267,7 +267,7 @@ check() {
     [[ $word == *:* ]] || zsh_plugin_file $word ||
       problems+=("plugins.txt: '$word' has no plugins/$word.zsh")
   done
-  (( $#due )) && print -r -- "zsh: updates for ${(j:, :)${(u)due}}; run zsh-update"
+  (( $#due )) && print -r -- "zsh: updates for ${(j:, :)${(@u)due}}; run zsh-update"
   (( $#problems )) && print -rl -- ${problems/#/zsh: }
   return 0
 }
