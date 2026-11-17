@@ -314,6 +314,8 @@ install() {
     git clone --depth=1 --quiet https://github.com/mattmc3/antidote.git $zsh_antidote_dir ||
       die "cloning antidote failed"
   fi
+  # Rebuilt by the next shell, so it follows a moved directory too.
+  rm -f $zsh_cache_dir/plugins.zsh{,.zwc}
   print "ok: antidote in $zsh_antidote_dir"
 
   if [[ ! -x $mise ]]; then
