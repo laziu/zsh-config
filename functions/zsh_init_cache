@@ -5,10 +5,13 @@
 # not installed. Callers source $REPLY at top level so the script's globals
 # stay global.
 emulate -L zsh
-REPLY=$zsh_cache_dir/init-${(j:_:)@}.zsh
 (( $+commands[$1] )) || return 1
+# One cache per real binary path, so another copy gets its own output.
+local bin=${commands[$1]:A}
+REPLY=$zsh_cache_dir/init/${bin//\//%}${(j::)${@[2,-1]/#/_}}.zsh
 # Regenerate when the command is reinstalled. Compare with the directory the
 # binary really lives in, created at install time: unpacked release binaries
 # keep their build time as mtime, which can predate the cache.
-[[ $REPLY -nt ${commands[$1]:A:h} ]] && return
+[[ $REPLY -nt ${bin:h} ]] && return
+[[ -d ${REPLY:h} ]] || mkdir -p ${REPLY:h}
 "$@" >| $REPLY || { rm -f $REPLY; return 1 }
