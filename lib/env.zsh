@@ -14,3 +14,8 @@ zsh_antidote_dir=$zsh_data_dir/antidote
 # Where antidote clones plugins. Set here so the child zsh antidote starts for
 # some commands sees it too.
 ANTIDOTE_HOME=$zsh_cache_dir/antidote
+# antidote's settings, here so that install.zsh (antidote update) uses them too.
+zstyle ':antidote:bundle:*' shallow yes                  # skip the background full-history fetch
+zstyle ':antidote:bundle:*' zcompile yes                 # compile the cloned plugins' files
+zstyle ':antidote:bundle:/*' zcompile no                 # local files: no .zwc in this directory
+zstyle ':antidote:snapshot' dir $zsh_cache_dir/antidote-snapshots  # removed with the clones

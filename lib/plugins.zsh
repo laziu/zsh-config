@@ -3,9 +3,6 @@
 
 fpath=($zsh_antidote_dir/functions $fpath)
 autoload -Uz antidote                                    # antidote update, install, ...
-zstyle ':antidote:bundle:*' shallow yes                  # skip the background full-history fetch
-zstyle ':antidote:bundle:*' zcompile yes                 # compile the cloned plugins' files
-zstyle ':antidote:bundle:/*' zcompile no                 # local files: no .zwc in this directory
 
 () {
   local list=$zsh_cache_dir/plugins.txt static=$zsh_cache_dir/plugins.zsh
