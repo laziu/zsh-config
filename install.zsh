@@ -8,7 +8,7 @@
 # Later updates: `antidote update` and `mise -C ~/.cache/zsh upgrade`; new
 # shells say when updates exist.
 emulate zsh
-setopt err_exit pipe_fail no_unset extended_glob
+setopt pipe_fail no_unset extended_glob
 
 # Sets zsh_config_dir and the zsh_*_dir layout.
 source ${0:A:h}/lib/env.zsh
@@ -90,13 +90,14 @@ runcoms() {
 runcoms install
 
 if [[ ! -d $zsh_antidote_dir/.git ]]; then
-  git clone --depth=1 --quiet https://github.com/mattmc3/antidote.git $zsh_antidote_dir
+  git clone --depth=1 --quiet https://github.com/mattmc3/antidote.git $zsh_antidote_dir ||
+    die "cloning antidote failed"
 fi
 print "ok: antidote in $zsh_antidote_dir"
 
 mise=${commands[mise]:-$HOME/.local/bin/mise}
 if [[ ! -x $mise ]]; then
-  curl -fsSL https://mise.run | sh  # installs to ~/.local/bin/mise
+  curl -fsSL https://mise.run | sh || die "installing mise failed"  # installs to ~/.local/bin/mise
 fi
 # A config of its own leaves the user's mise config alone.
 zsh_plugin_entries
@@ -107,7 +108,7 @@ mkdir -p $zsh_cache_dir
   print "[tools]"
   for tool in $tools; do print -r -- "\"$tool\" = \"latest\""; done
 } >| $mise_config
-$mise trust --quiet $mise_config
-$mise -C $zsh_cache_dir install
+$mise trust --quiet $mise_config || die "mise trust failed"
+$mise -C $zsh_cache_dir install || die "mise install failed"
 print "ok: tools from plugins.txt installed"
 print "Done. Start a new login shell (exec zsh -l); the first start fetches the plugins."
