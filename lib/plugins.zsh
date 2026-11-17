@@ -30,7 +30,9 @@ zstyle ':antidote:bundle:/*' zcompile no                 # local files: no .zwc 
     fi
   done
   print -rl -- $lines >| $list
-  antidote bundle <$list >|$static
+  # On failure (e.g. offline) keep the previous script.
+  antidote bundle <$list >| $static.new || { rm -f $static.new; return 1 }
+  mv -f $static.new $static
   zcompile $static
 }
-source $zsh_cache_dir/plugins.zsh
+[[ -r $zsh_cache_dir/plugins.zsh ]] && source $zsh_cache_dir/plugins.zsh
